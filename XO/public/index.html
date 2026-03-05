@@ -1,32 +1,24 @@
-
 <!DOCTYPE html>
 <html>
 <head>
+
 <meta charset="UTF-8">
-<title>Tic Tac Toe Arena</title>
+<title>XO Arena</title>
 <link rel="stylesheet" href="style.css">
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+
 </head>
 
 <body>
 
-<canvas id="bg"></canvas>
+<div class="container">
 
-<div class="game-wrapper">
+<h1 class="title">XO ARENA</h1>
 
-<div class="top-bar">
-<h1 class="game-title">TIC TAC TOE ARENA</h1>
-<div id="status" class="status">Connecting...</div>
-</div>
+<div id="status">Connecting...</div>
 
-<div class="game-panel">
 <div id="board"></div>
-</div>
 
-<div class="bottom-bar">
-<button class="btn">Find Match</button>
-<button class="btn" onclick="location.reload()">Restart</button>
-</div>
+<button onclick="restartGame()" class="btn">Restart</button>
 
 </div>
 
