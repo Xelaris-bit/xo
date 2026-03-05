@@ -1,142 +1,160 @@
-
 const socket = new WebSocket(location.origin.replace(/^http/, 'ws'))
 
-let mySymbol=null
-let myTurn=false
-let board=["","","","","","","","",""]
+let mySymbol = null
+let myTurn = false
+let gameOver = false
 
-const statusText=document.getElementById("status")
+let board = ["","","","","","","","",""]
 
-socket.onmessage=event=>{
+const statusText = document.getElementById("status")
+const boardDiv = document.getElementById("board")
 
-const data=JSON.parse(event.data)
+const winPatterns = [
 
-if(data.type==="waiting"){
+[0,1,2],
+[3,4,5],
+[6,7,8],
+
+[0,3,6],
+[1,4,7],
+[2,5,8],
+
+[0,4,8],
+[2,4,6]
+
+]
+
+function createBoard(){
+
+boardDiv.innerHTML=""
+
+board.forEach((_,i)=>{
+
+const cell = document.createElement("div")
+cell.classList.add("cell")
+
+cell.addEventListener("click",()=>playerMove(i))
+
+boardDiv.appendChild(cell)
+
+})
+
+}
+
+function playerMove(index){
+
+if(!myTurn) return
+if(gameOver) return
+if(board[index] !== "") return
+
+board[index] = mySymbol
+
+updateBoard()
+
+socket.send(JSON.stringify({
+
+index:index,
+symbol:mySymbol
+
+}))
+
+myTurn = false
+
+checkWinner()
+
+}
+
+socket.onmessage = event => {
+
+const data = JSON.parse(event.data)
+
+if(data.type === "waiting"){
 statusText.innerText="Waiting for opponent..."
 }
 
-if(data.type==="start"){
-mySymbol=data.symbol
-statusText.innerText="Game started. You are "+mySymbol
-if(mySymbol==="X") myTurn=true
-}
+if(data.type === "start"){
 
-if(data.type==="move"){
-board[data.index]=data.symbol
-updateBoard()
-myTurn=true
-}
+mySymbol = data.symbol
+
+statusText.innerText = "Game Started. You are " + mySymbol
+
+if(mySymbol === "X") myTurn = true
 
 }
 
-const scene=new THREE.Scene()
-const camera=new THREE.PerspectiveCamera(75,1,0.1,1000)
-const renderer=new THREE.WebGLRenderer({alpha:true})
+if(data.type === "move"){
 
-renderer.setSize(420,420)
-document.getElementById("board").appendChild(renderer.domElement)
+board[data.index] = data.symbol
 
-camera.position.z=5
-
-const grid=[]
-const geometry=new THREE.BoxGeometry(1,1,0.1)
-
-for(let i=0;i<9;i++){
-
-const material=new THREE.MeshBasicMaterial({color:0x2b7cff})
-const cube=new THREE.Mesh(geometry,material)
-
-cube.position.x=(i%3)-1
-cube.position.y=1-Math.floor(i/3)
-
-cube.userData.index=i
-
-scene.add(cube)
-grid.push(cube)
-}
-
-function animate(){
-requestAnimationFrame(animate)
-renderer.render(scene,camera)
-}
-animate()
-
-renderer.domElement.addEventListener("click",event=>{
-
-if(!myTurn) return
-
-const mouse=new THREE.Vector2(
-(event.offsetX/420)*2-1,
--(event.offsetY/420)*2+1
-)
-
-const raycaster=new THREE.Raycaster()
-raycaster.setFromCamera(mouse,camera)
-
-const intersects=raycaster.intersectObjects(grid)
-
-if(intersects.length>0){
-
-const cube=intersects[0].object
-const index=cube.userData.index
-
-if(board[index]!=="") return
-
-board[index]=mySymbol
 updateBoard()
 
-socket.send(JSON.stringify({index:index,symbol:mySymbol}))
+myTurn = true
 
-myTurn=false
+checkWinner()
 
 }
 
-})
+}
 
 function updateBoard(){
 
-grid.forEach((cube,i)=>{
+const cells = document.querySelectorAll(".cell")
 
-if(board[i]==="X"){cube.material.color.set(0xff4444)}
-if(board[i]==="O"){cube.material.color.set(0x00ff99)}
+cells.forEach((cell,i)=>{
+
+cell.innerText = board[i]
 
 })
 
 }
 
-const canvas=document.getElementById("bg")
-const ctx=canvas.getContext("2d")
+function checkWinner(){
 
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight
+for(let pattern of winPatterns){
 
-let particles=[]
+const [a,b,c] = pattern
 
-for(let i=0;i<60;i++){
-particles.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-r:Math.random()*2
-})
+if(board[a] && board[a] === board[b] && board[a] === board[c]){
+
+gameOver = true
+
+highlightWin(pattern)
+
+if(board[a] === mySymbol){
+statusText.innerText="You Win 🎉"
+}else{
+statusText.innerText="You Lose 😢"
 }
 
-function bgAnimate(){
+return
 
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-particles.forEach(p=>{
-
-ctx.beginPath()
-ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
-ctx.fillStyle="rgba(0,200,255,0.5)"
-ctx.fill()
-
-p.y+=0.3
-if(p.y>canvas.height)p.y=0
-
-})
-
-requestAnimationFrame(bgAnimate)
 }
 
-bgAnimate()
+}
+
+if(!board.includes("")){
+
+gameOver = true
+statusText.innerText="Draw Game"
+
+}
+
+}
+
+function highlightWin(pattern){
+
+const cells = document.querySelectorAll(".cell")
+
+pattern.forEach(i=>{
+cells[i].classList.add("win")
+})
+
+}
+
+function restartGame(){
+
+location.reload()
+
+}
+
+createBoard()
