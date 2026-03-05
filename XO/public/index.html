@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tic Tac Toe Arena</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+</head>
+
+<body>
+
+<canvas id="bg"></canvas>
+
+<div class="game-wrapper">
+
+<div class="top-bar">
+<h1 class="game-title">TIC TAC TOE ARENA</h1>
+<div id="status" class="status">Connecting...</div>
+</div>
+
+<div class="game-panel">
+<div id="board"></div>
+</div>
+
+<div class="bottom-bar">
+<button class="btn">Find Match</button>
+<button class="btn" onclick="location.reload()">Restart</button>
+</div>
+
+</div>
+
+<script src="game.js"></script>
+
+</body>
+</html>
